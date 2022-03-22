@@ -1,0 +1,12 @@
+.DS_Store
+
+document/receipt/
+document/webhook/
+nbproject
+application/config/config.php
+application/config/database.php
+vendor/
+./index.php
+index.php
+composer.phar
+application/.DS_Store

@@ -71,11 +71,17 @@
                                                 <a class="btn btn-warning btn-sm"><i class="fa fa-solid fa-eye"></i></a>
                                             </td>
                                             <td><?= $geojson['shp_name'] ?></td>
-                                            <td><?= date('d/m/Y h:i a',strtotime($geojson['dt_added'])) ?></td>
+                                            <td class="text-center">
+                                                <span class="fa fa-solid fa-clock"></span>
+                                                <?= date('h:i A',strtotime($geojson['dt_added'])) ?><br>
+                                                <span class="fa fa-calendar"></span>&nbsp;
+                                                <?= date('d/m/Y',strtotime($geojson['dt_added'])) ?>
+                                            </td>
                                             <td class="text-center"><span class="badge bg-success">Active</span></td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
+                                    <tr><td colspan="5">No data</td></tr>
                                 <?php endif; ?>
                             </tbody>
                         </table>

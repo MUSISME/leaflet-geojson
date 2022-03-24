@@ -57,7 +57,7 @@
                                 <th class="text-center">#</th>
                                 <th class="text-center" style="width: 10em;">Action</th>
                                 <th>Shapefile</th>
-                                <th class="text-center" style="width: 11em;">Date Added</th>
+                                <th class="text-center" style="width: 12em;">Date Added</th>
                                 <th class="text-center" style="width: 5em;">Status</th>
                             </thead>
                             <tbody>

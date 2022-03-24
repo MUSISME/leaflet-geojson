@@ -1,7 +1,6 @@
 .DS_Store
 
-document/receipt/
-document/webhook/
+document/shapefile/
 nbproject
 application/config/config.php
 application/config/database.php

@@ -95,30 +95,39 @@
 
 <script>
     var baseURL = '<?= base_url() ?>';
-    $.ajax({
-        url: `${baseURL}gis/geojson_data`,
-        dataType: 'JSON',
-        success:function(response){
-
-            loadMaps(response);
-        }
+    
+    $(function(){
+        load_geojson();
     });
 
-    function loadMaps(response){
-        var map = L.map('map').setView([6.0, 100.4], 9);
-        var popup = L.popup();
-        const tileURL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-        const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
-        const tiles = L.tileLayer( tileURL, { attribution });
-        tiles.addTo( map );
+    var map = L.map('map').setView([6.0, 100.4], 9);
+    var popup = L.popup();
+    const tileURL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+    const tiles = L.tileLayer( tileURL, { attribution });
+    tiles.addTo( map );
 
-        function onMapClick(e) {
-            popup
-                .setLatLng(e.latlng)
-                .setContent("You clicked the map at " + e.latlng.toString())
-                .openOn(map);
-        }
-        map.on('click', onMapClick);
+    function onMapClick(e) {
+        popup
+            .setLatLng(e.latlng)
+            .setContent("You clicked the map at " + e.latlng.toString())
+            .openOn(map);
+    }
+    map.on('click', onMapClick);
+    
+    function load_geojson(){
+        $.ajax({
+            url: `${baseURL}gis/geojson_data`,
+            dataType: 'JSON',
+            success:function(response){
+                response.forEach(element => {
+                    loadMaps(element.data);
+                });
+            }
+        });
+    }
+
+    function loadMaps(response){
 
         if (response != '') {
             var kedahData = JSON.parse(response);

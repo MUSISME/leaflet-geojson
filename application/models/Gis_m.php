@@ -85,18 +85,15 @@ class Gis_m extends CI_Model{
     }
 
     public function get_geojson_data(){
-        $geo_data = '';
+        $res = [];
 
+        $this->db->where('geojson_status',1);
         $query = $this->db->get('geojson');
 
         if ($query->num_rows()>0) {
             $res = $query->result_array();
-
-            foreach ($res as $data) {
-                $geo_data .= $data['data'];
-            }
         }
-        return $geo_data;
+        return $res;
     }
 
     public function get_geojson_list(){

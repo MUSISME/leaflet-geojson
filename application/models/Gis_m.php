@@ -98,6 +98,8 @@ class Gis_m extends CI_Model{
 
     public function get_geojson_list(){
         $res = [];
+        $this->db->where('geojson_status !=',0);
+        $this->db->order_by('geojson_status ASC, dt_added DESC');
         $query = $this->db->get('geojson');
 
         if ($query->num_rows()>0) {
@@ -105,5 +107,52 @@ class Gis_m extends CI_Model{
         }
 
         return $res;
+    }
+
+    public function post_delete_geojson(){
+        if (isset($_POST)) {
+            $arr_post = $_POST;
+            $geojson_id = $arr_post['geojson_id'];
+
+            $this->db->where('geojson_id',$geojson_id);
+            $this->db->update('geojson',array('geojson_status' => 0));
+
+            $response = $this->db->affected_rows() == 1 ? 'success' : 'error';
+
+            return $response;
+        }
+    }
+
+    public function post_update_geojson_status(){
+        if (isset($_POST)) {
+            $arr_post = $_POST;
+            $geojson_id = $arr_post['geojson_id'];
+            $geojson_status = $arr_post['geojson_status'];
+            $new_geojson_status = $geojson_status == 1 ? '2' : '1';
+
+            $this->db->where('geojson_id',$geojson_id);
+            $this->db->update('geojson',array('geojson_status' => $new_geojson_status));
+
+            $response = $this->db->affected_rows() == 1 ? 'success' : 'error';
+
+            return $response;
+        }
+    }
+
+    public function post_geojson_lat_long(){
+        $res = [];
+
+        if (isset($_POST)) {
+
+            $geojson_id = $this->input->post('geojson_id');
+
+            $this->db->where('geojson_id',$geojson_id);
+            $query = $this->db->get('geojson');
+
+            if ($query->num_rows()>0) {
+                $res = $query->row_array();
+            }
+            return $res['data'];
+        }
     }
 }

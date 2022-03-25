@@ -21,4 +21,19 @@ class Gis extends CI_Controller
         $rs_data = $this->gis_m->get_geojson_data();
         echo json_encode($rs_data);
     }
+
+    public function delete_geojson(){
+        $rs_data = $this->gis_m->post_delete_geojson();
+        echo json_encode($rs_data);
+    }
+
+    public function update_geojson_status(){
+        $rs_data = $this->gis_m->post_update_geojson_status();
+        echo json_encode($rs_data);
+    }
+
+    public function view_geojson_lat_long(){
+        $rs_data = $this->gis_m->post_geojson_lat_long();
+        echo json_encode($rs_data);
+    }
 }

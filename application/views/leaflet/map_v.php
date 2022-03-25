@@ -51,7 +51,7 @@
                     <div class="card-header">
                         Geojson Data
                     </div>
-                    <div class="card-body">
+                    <div class="card-body table-responsive">
                         <table class="table table-striped table-bordered">
                             <thead>
                                 <th class="text-center">#</th>
@@ -66,9 +66,9 @@
                                         <tr>
                                             <td class="text-center"><?= $x += 1; ?></td>
                                             <td class="text-center">
-                                                <a class="btn btn-primary btn-sm"><i class="fa fa-solid fa-pencil"></i></a>
-                                                <a class="btn btn-danger btn-sm"><i class="fa fa-solid fa-trash-can"></i></a>
-                                                <a class="btn btn-warning btn-sm"><i class="fa fa-solid fa-eye"></i></a>
+                                                <a class="btn btn-primary btn-sm" onclick="view_lat_long('<?= $geojson['geojson_id'] ?>')"><i class="fa fa-solid fa-location-crosshairs"></i></a>
+                                                <a class="btn <?= $geojson['geojson_status'] == 1 ? 'btn-warning' : 'btn-secondary' ?> btn-sm" onclick="active_inactive_confirmation('<?= $geojson['geojson_id'] ?>',<?= $geojson['geojson_status'] ?>)"><i class="<?= $geojson['geojson_status'] == 1 ? 'fa fa-solid fa-eye' : 'fa fa-solid fa-eye-slash' ?>"></i></a>
+                                                <a class="btn btn-danger btn-sm" onclick="delete_confirmation('<?= $geojson['geojson_id'] ?>')"><i class="fa fa-solid fa-trash-can"></i></a>
                                             </td>
                                             <td><?= $geojson['shp_name'] ?></td>
                                             <td class="text-center">
@@ -77,7 +77,9 @@
                                                 <span class="fa fa-calendar"></span>&nbsp;
                                                 <?= date('d/m/Y',strtotime($geojson['dt_added'])) ?>
                                             </td>
-                                            <td class="text-center"><span class="badge bg-success">Active</span></td>
+                                            <td class="text-center">
+                                                <?= geojson_status($geojson['geojson_status']) ?>
+                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else: ?>
@@ -91,11 +93,29 @@
         </div>
     </div>
 </body>
-</html>
 
+<div class="modal fade modal-lat-long" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">GeoJSON Viewer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <textarea class="form-control" cols="30" rows="20" readonly></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</html>
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     var baseURL = '<?= base_url() ?>';
-    
+
     $(function(){
         load_geojson();
     });
@@ -133,6 +153,111 @@
             var kedahData = JSON.parse(response);
             var lineData = L.geoJSON(kedahData).addTo(map);     
         }
+    }
+
+    function delete_confirmation(id){
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+            if (result.isConfirmed) {
+                delete_geojson(id);
+            }
+            })
+    }
+
+    function delete_geojson(id){
+        $.ajax({
+            url: `${baseURL}gis/delete_geojson`,
+            data: {geojson_id:id},
+            type: 'POST',
+            dataType: 'JSON',
+            success:function(response){
+                if (response == 'success') {
+                    Swal.fire(
+                    'Deleted!',
+                    'Your file has been deleted.',
+                    'success'
+                    ).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload();
+                        }
+                    })
+                }else{
+                    Swal.fire(
+                    'Attention!',
+                    'Your file error when deleting.',
+                    'error'
+                    )
+                }
+            }
+        });
+    }
+
+    function active_inactive_confirmation(id,geojson_status){
+        var text = geojson_status == 1 ? 'activate' : 'deactivate';
+        var confirm_button = geojson_status == 1 ? 'deactivate' : 'activate';
+        Swal.fire({
+            title: 'Are you sure?',
+            text: `You can ${text} again later!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: `Yes, ${confirm_button} it!`
+            }).then((result) => {
+            if (result.isConfirmed) {
+                update_geojson_status(id,geojson_status);
+            }
+            })
+    }
+
+    function update_geojson_status(id,geojson_status){
+        var confirm_text = geojson_status == 1 ? 'deactivate' : 'activate';
+
+        $.ajax({
+            url: `${baseURL}gis/update_geojson_status`,
+            data: {geojson_id:id,geojson_status:geojson_status},
+            type: 'POST',
+            dataType: 'JSON',
+            success:function(response){
+                if (response == 'success') {
+                    Swal.fire(
+                    'Deleted!',
+                    `Your file has been ${confirm_text}.`,
+                    'success'
+                    ).then((result) => {
+                        if (result.isConfirmed) {
+                            location.reload();
+                        }
+                    })
+                }else{
+                    Swal.fire(
+                    'Attention!',
+                    `Your file error when ${confirm_text}.`,
+                    'error'
+                    )
+                }
+            }
+        });
+    }
+
+    function view_lat_long(id){
+        $.ajax({
+            url: `${baseURL}gis/view_geojson_lat_long`,
+            data: {geojson_id:id},
+            type: 'POST',
+            dataType: 'JSON',
+            success:function(response){
+                $('.modal-lat-long').find('textarea').text(JSON.stringify(JSON.parse(response),null,2));
+                $('.modal-lat-long').modal('show');
+            }
+        });
     }
 
 </script>

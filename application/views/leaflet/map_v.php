@@ -228,7 +228,7 @@
             success:function(response){
                 if (response == 'success') {
                     Swal.fire(
-                    'Deleted!',
+                    'Attention!',
                     `Your file has been ${confirm_text}.`,
                     'success'
                     ).then((result) => {

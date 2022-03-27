@@ -23,12 +23,16 @@
         <div class="row">
             <div class="col-md-6" style="height: 50vh !important;">
                 <div class="card mt-5">
+                    <div class="card-header">
+                        Upload Shapefile
+                    </div>
                     <div class="card-body">
-                        <form method="POST" action="<?= base_url() ?>gis/upload_file" enctype="multipart/form-data">
-                            <label for="">Upload Shapefile :</label>
+                        <form id="upload-form" method="POST" action="<?= base_url() ?>gis/upload_file" enctype="multipart/form-data">
                             <input type="file" class="form-control" name="files[]" multiple required>
-                            <button class="btn btn-success btn-sm float-end mt-4">Upload</button>
                         </form>
+                    </div>
+                    <div class="card-footer">
+                        <button form="upload-form" class="btn btn-success btn-sm float-end">Upload</button>
                     </div>
                 </div>
             </div>
@@ -102,10 +106,12 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <textarea class="form-control" cols="30" rows="20" readonly></textarea>
+            <input type="hidden" class="geojson_id">
+            <textarea class="form-control" cols="30" rows="20" readonly></textarea>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-edit btn-primary" onclick="edit_lat_long(this)">Edit</button>
+            <button type="button" class="btn btn-secondary close-btn" data-bs-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
@@ -115,149 +121,6 @@
 <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     var baseURL = '<?= base_url() ?>';
-
-    $(function(){
-        load_geojson();
-    });
-
-    var map = L.map('map').setView([6.0, 100.4], 9);
-    var popup = L.popup();
-    const tileURL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
-    const tiles = L.tileLayer( tileURL, { attribution });
-    tiles.addTo( map );
-
-    function onMapClick(e) {
-        popup
-            .setLatLng(e.latlng)
-            .setContent("You clicked the map at " + e.latlng.toString())
-            .openOn(map);
-    }
-    map.on('click', onMapClick);
-    
-    function load_geojson(){
-        $.ajax({
-            url: `${baseURL}gis/geojson_data`,
-            dataType: 'JSON',
-            success:function(response){
-                response.forEach(element => {
-                    loadMaps(element.data);
-                });
-            }
-        });
-    }
-
-    function loadMaps(response){
-
-        if (response != '') {
-            var kedahData = JSON.parse(response);
-            var lineData = L.geoJSON(kedahData).addTo(map);     
-        }
-    }
-
-    function delete_confirmation(id){
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
-            }).then((result) => {
-            if (result.isConfirmed) {
-                delete_geojson(id);
-            }
-            })
-    }
-
-    function delete_geojson(id){
-        $.ajax({
-            url: `${baseURL}gis/delete_geojson`,
-            data: {geojson_id:id},
-            type: 'POST',
-            dataType: 'JSON',
-            success:function(response){
-                if (response == 'success') {
-                    Swal.fire(
-                    'Deleted!',
-                    'Your file has been deleted.',
-                    'success'
-                    ).then((result) => {
-                        if (result.isConfirmed) {
-                            location.reload();
-                        }
-                    })
-                }else{
-                    Swal.fire(
-                    'Attention!',
-                    'Your file error when deleting.',
-                    'error'
-                    )
-                }
-            }
-        });
-    }
-
-    function active_inactive_confirmation(id,geojson_status){
-        var text = geojson_status == 1 ? 'activate' : 'deactivate';
-        var confirm_button = geojson_status == 1 ? 'deactivate' : 'activate';
-        Swal.fire({
-            title: 'Are you sure?',
-            text: `You can ${text} again later!`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: `Yes, ${confirm_button} it!`
-            }).then((result) => {
-            if (result.isConfirmed) {
-                update_geojson_status(id,geojson_status);
-            }
-            })
-    }
-
-    function update_geojson_status(id,geojson_status){
-        var confirm_text = geojson_status == 1 ? 'deactivate' : 'activate';
-
-        $.ajax({
-            url: `${baseURL}gis/update_geojson_status`,
-            data: {geojson_id:id,geojson_status:geojson_status},
-            type: 'POST',
-            dataType: 'JSON',
-            success:function(response){
-                if (response == 'success') {
-                    Swal.fire(
-                    'Attention!',
-                    `Your file has been ${confirm_text}.`,
-                    'success'
-                    ).then((result) => {
-                        if (result.isConfirmed) {
-                            location.reload();
-                        }
-                    })
-                }else{
-                    Swal.fire(
-                    'Attention!',
-                    `Your file error when ${confirm_text}.`,
-                    'error'
-                    )
-                }
-            }
-        });
-    }
-
-    function view_lat_long(id){
-        $.ajax({
-            url: `${baseURL}gis/view_geojson_lat_long`,
-            data: {geojson_id:id},
-            type: 'POST',
-            dataType: 'JSON',
-            success:function(response){
-                $('.modal-lat-long').find('textarea').text(JSON.stringify(JSON.parse(response),null,2));
-                $('.modal-lat-long').modal('show');
-            }
-        });
-    }
-
 </script>
+
+<script src="<?= base_url() ?>js/gis.js?v1.0"></script>
